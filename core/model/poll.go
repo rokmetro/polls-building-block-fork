@@ -185,7 +185,7 @@ func (poll *Poll) ToPollResult(currentUserID string) PollResult {
 		for _, e := range poll.Responses {
 			votersMap[e.UserID] = true
 
-			userVoted := poll.UserID == currentUserID
+			userVoted := e.UserID == currentUserID
 
 			for _, a := range e.Answer {
 				if a >= 0 && a < count {
