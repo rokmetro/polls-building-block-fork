@@ -16,7 +16,6 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"polls/core"
 	"polls/core/model"
@@ -29,6 +28,7 @@ import (
 	"strings"
 
 	"github.com/rokwire/core-auth-library-go/v3/authservice"
+	"github.com/rokwire/core-auth-library-go/v3/envloader"
 	"github.com/rokwire/core-auth-library-go/v3/keys"
 	"github.com/rokwire/core-auth-library-go/v3/sigauth"
 	"github.com/rokwire/logging-library-go/v2/logs"
@@ -47,33 +47,35 @@ func main() {
 	}
 
 	serviceID := "polls-v2"
+	envPrefix := "POLLS_"
 
 	loggerOpts := logs.LoggerOpts{
 		SensitiveHeaders: []string{"Rokwire-Api-Key", "User-ID", "Rokwire-Hs-Api-Key", "Group", "Rokwire-Acc-ID", "Csrf"},
 		SuppressRequests: logs.NewStandardHealthCheckHTTPRequestProperties("polls/version"),
 	}
 	logger := logs.NewLogger(serviceID, &loggerOpts)
+	envLoader := envloader.NewEnvLoader(Version, logger)
 
-	port := getEnvKey("PORT", true)
+	port := envLoader.GetAndLogEnvVar("PORT", true, false)
 
-	internalAPIKey := getEnvKey("INTERNAL_API_KEY", true)
+	internalAPIKey := envLoader.GetAndLogEnvVar("INTERNAL_API_KEY", true, true)
 
 	//mongoDB adapter
-	mongoDBAuth := getEnvKey("MONGO_AUTH", true)
-	mongoDBName := getEnvKey("MONGO_DATABASE", true)
-	mongoTimeout := getEnvKey("MONGO_TIMEOUT", false)
+	mongoDBAuth := envLoader.GetAndLogEnvVar("MONGO_AUTH", true, true)
+	mongoDBName := envLoader.GetAndLogEnvVar("MONGO_DATABASE", true, false)
+	mongoTimeout := envLoader.GetAndLogEnvVar("MONGO_TIMEOUT", false, false)
 
 	// web adapter
-	host := getEnvKey("HOST", true)
-	coreBBHost := getEnvKey("CORE_BB_HOST", true)
-	serviceURL := getEnvKey("POLL_SERVICE_URL", true)
-	uiucOrgID := getEnvKey("UIUC_ORG_ID", true)
+	host := envLoader.GetAndLogEnvVar("HOST", true, false)
+	coreBBHost := envLoader.GetAndLogEnvVar("CORE_BB_HOST", true, false)
+	serviceURL := envLoader.GetAndLogEnvVar("POLL_SERVICE_URL", true, false)
+	uiucOrgID := envLoader.GetAndLogEnvVar("UIUC_ORG_ID", true, true)
 
 	// Groups BB Host
-	groupsBBHost := getEnvKey("POLLS_GROUPS_BB_HOST", true)
+	groupsBBHost := envLoader.GetAndLogEnvVar(envPrefix+"GROUPS_BB_HOST", true, false)
 
 	// Notifications BB Host
-	notificationsBBHost := getEnvKey("POLLS_NOTIFICATIONS_BB_HOST", true)
+	notificationsBBHost := envLoader.GetAndLogEnvVar(envPrefix+"NOTIFICATIONS_BB_HOST", true, false)
 
 	authService := authservice.AuthService{
 		ServiceID:   serviceID,
@@ -95,8 +97,8 @@ func main() {
 	//core adapter
 	var serviceAccountManager *authservice.ServiceAccountManager
 
-	serviceAccountID := getEnvKey("POLLS_SERVICE_ACCOUNT_ID", false)
-	privKeyRaw := getEnvKey("POLLS_PRIV_KEY", true)
+	serviceAccountID := envLoader.GetAndLogEnvVar(envPrefix+"SERVICE_ACCOUNT_ID", false, false)
+	privKeyRaw := envLoader.GetAndLogEnvVar(envPrefix+"PRIV_KEY", true, true)
 	privKeyRaw = strings.ReplaceAll(privKeyRaw, "\\n", "\n")
 	privKey, err := keys.NewPrivKey(keys.PS256, privKeyRaw)
 	if err != nil {
@@ -140,13 +142,13 @@ func main() {
 	}
 
 	//notifications BB adapter
-	appID := getEnvKey("POLLS_APP_ID", true)
-	orgID := getEnvKey("POLLS_ORG_ID", true)
+	appID := envLoader.GetAndLogEnvVar(envPrefix+"APP_ID", true, true)
+	orgID := envLoader.GetAndLogEnvVar(envPrefix+"ORG_ID", true, true)
 	notificationsBBAdapter := notifications.NewNotificationsAdapter(notificationsBBHost, internalAPIKey, appID, orgID)
 
 	groupsAdapter := groups.NewGroupsAdapter(config)
 
-	defaultCacheExpirationSeconds := getEnvKey("DEFAULT_CACHE_EXPIRATION_SECONDS", false)
+	defaultCacheExpirationSeconds := envLoader.GetAndLogEnvVar("DEFAULT_CACHE_EXPIRATION_SECONDS", false, false)
 	cacheAdapter := cacheadapter.NewCacheAdapter(defaultCacheExpirationSeconds)
 
 	//core adapter
@@ -157,32 +159,18 @@ func main() {
 		groupsAdapter, serviceID, coreAdapter, logger)
 	application.Start()
 
-	webAdapter := driver.NewWebAdapter(host, port, application, config, serviceRegManager, logger)
+	var corsAllowedHeaders []string
+	var corsAllowedOrigins []string
+	corsAllowedHeadersStr := envLoader.GetAndLogEnvVar(envPrefix+"CORS_ALLOWED_HEADERS", false, true)
+	if corsAllowedHeadersStr != "" {
+		corsAllowedHeaders = strings.Split(corsAllowedHeadersStr, ",")
+	}
+	corsAllowedOriginsStr := envLoader.GetAndLogEnvVar(envPrefix+"CORS_ALLOWED_ORIGINS", false, true)
+	if corsAllowedOriginsStr != "" {
+		corsAllowedOrigins = strings.Split(corsAllowedOriginsStr, ",")
+	}
+
+	webAdapter := driver.NewWebAdapter(host, port, application, config, serviceRegManager, corsAllowedOrigins, corsAllowedHeaders, logger)
 
 	webAdapter.Start()
-}
-
-func getEnvKeyAsList(key string, required bool) []string {
-	stringValue := getEnvKey(key, required)
-
-	// it is comma separated format
-	stringListValue := strings.Split(stringValue, ",")
-	if len(stringListValue) == 0 && required {
-		log.Fatalf("missing or empty env var: %s", key)
-	}
-
-	return stringListValue
-}
-
-func getEnvKey(key string, required bool) string {
-	// get from the environment
-	value, exist := os.LookupEnv(key)
-	if !exist {
-		if required {
-			log.Fatal("No provided environment variable for " + key)
-		} else {
-			log.Printf("No provided environment variable for " + key)
-		}
-	}
-	return value
 }

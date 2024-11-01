@@ -17,6 +17,8 @@
         "POLLS_NOTIFICATIONS_BB_HOST": "<notifications-bb-base-url>",
         "POLLS_GROUPS_BB_HOST": "<groups-bb-base-url>",
         "DEFAULT_CACHE_EXPIRATION_SECONDS": "",
-        "POLLS_SERVICE_ACCOUNT_ID": "<service-account-id>"
+        "POLLS_SERVICE_ACCOUNT_ID": "<service-account-id>",
+        "POLLS_CORS_ALLOWED_HEADERS": "",
+        "POLLS_CORS_ALLOWED_ORIGINS": "<origin1>,<origin2>"
     }
 }

@@ -16,13 +16,13 @@ package web
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"polls/core"
 	"polls/core/model"
 	"polls/driver/web/rest"
 
 	"github.com/rokwire/core-auth-library-go/v3/authservice"
+	"github.com/rokwire/core-auth-library-go/v3/webauth"
 	"github.com/rokwire/logging-library-go/v2/logs"
 
 	"github.com/casbin/casbin"
@@ -40,6 +40,9 @@ type Adapter struct {
 	apisHandler         rest.ApisHandler
 	adminApisHandler    rest.AdminApisHandler
 	internalApisHandler rest.InternalApisHandler
+
+	corsAllowedOrigins []string
+	corsAllowedHeaders []string
 
 	app    *core.Application
 	logger *logs.Logger
@@ -114,7 +117,12 @@ func (we Adapter) Start() {
 	adminRouter.HandleFunc("/alert-contacts", we.adminAuthWrapFunc(we.adminApisHandler.CreateAlertContact)).Methods("POST")
 	adminRouter.HandleFunc("/alert-contacts/{id}", we.adminAuthWrapFunc(we.adminApisHandler.UpdateAlertContact)).Methods("PUT")
 	adminRouter.HandleFunc("/alert-contacts/{id}", we.adminAuthWrapFunc(we.adminApisHandler.DeleteAlertContact)).Methods("DELETE")
-	log.Fatal(http.ListenAndServe(":"+we.port, router))
+
+	var handler http.Handler = router
+	if len(we.corsAllowedOrigins) > 0 {
+		handler = webauth.SetupCORS(we.corsAllowedOrigins, we.corsAllowedHeaders, router)
+	}
+	we.logger.Fatalf("Error serving: %v", http.ListenAndServe(":"+we.port, handler))
 }
 
 func (we Adapter) serveDoc(w http.ResponseWriter, r *http.Request) {
@@ -217,7 +225,8 @@ func (we Adapter) internalAPIKeyAuthWrapFunc(handler internalAPIKeyAuthFunc) htt
 }
 
 // NewWebAdapter creates new WebAdapter instance
-func NewWebAdapter(host string, port string, app *core.Application, config *model.Config, serviceRegManager *authservice.ServiceRegManager, logger *logs.Logger) Adapter {
+func NewWebAdapter(host string, port string, app *core.Application, config *model.Config, serviceRegManager *authservice.ServiceRegManager,
+	corsAllowedOrigins []string, corsAllowedHeaders []string, logger *logs.Logger) Adapter {
 	auth := NewAuth(app, config, serviceRegManager, logger)
 	authorization := casbin.NewEnforcer("driver/web/authorization_model.conf", "driver/web/authorization_policy.csv")
 
@@ -233,6 +242,8 @@ func NewWebAdapter(host string, port string, app *core.Application, config *mode
 		adminApisHandler:    adminApisHandler,
 		internalApisHandler: internalApisHandler,
 		app:                 app,
+		corsAllowedOrigins:  corsAllowedOrigins,
+		corsAllowedHeaders:  corsAllowedHeaders,
 		logger:              logger,
 	}
 }
