@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add CORS support
 ### Fixed
 - Fix PollResult voted bug
+- Move GET request bodies to query for web
 
 ## [1.8.2] - 2024-07-15
 ### Fixed 
