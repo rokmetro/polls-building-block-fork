@@ -1,33 +1,93 @@
 get:
-   tags:
-   - Client
-   summary: Retrieves  all polls by a filter params
-   description: |
-      Retrieves  all polls by a filter params
-   security:
-     - bearerAuth: []
-   requestBody:
-     description:  Body json for defined poll ids as request body
-     content:
-       application/json:
-         schema:
-           $ref: "../../schemas/polls/PollFilter.yaml"  
-     required: true      
-   responses:
-     200:
-       description: Success
-       content:
-         application/json:
-           schema:
-             type: array
-             items:
-               $ref: "../../schemas/polls/PollResult.yaml"
-     400:
-       description: Bad request
-     401:
-       description: Unauthorized
-     500:
-       description: Internal error
+  tags:
+  - Client
+  summary: Retrieves  all polls by a filter params
+  description: |
+    Retrieves  all polls by a filter params
+  security:
+    - bearerAuth: []
+  parameters:
+    - name: pin
+      in: query
+      description: Poll pin to use in filter
+      required: false
+      style: simple
+      explode: false
+      schema:
+        type: integer
+    - name: poll_ids
+      in: query
+      description: A comma-separated list of poll IDs to use in filter
+      required: false
+      style: simple
+      explode: false
+      schema:
+        type: string
+    - name: my_polls
+      in: query
+      description: Whether only user's polls should be included in results
+      required: false
+      style: simple
+      explode: false
+      schema:
+        type: boolean
+    - name: group_ids
+      in: query
+      description: A comma-separated list of group IDs to use in filter
+      required: false
+      style: simple
+      explode: false
+      schema:
+        type: string
+    - name: responded_polls
+      in: query
+      description: Whether only polls user has responded to should be included in results
+      required: false
+      style: simple
+      explode: false
+      schema:
+        type: boolean
+    - name: statuses
+      in: query
+      description: A comma-separated list of poll statuses to use in filter
+      required: false
+      style: simple
+      explode: false
+      schema:
+        type: string
+    - name: limit
+      in: query
+      description: The number of results to be loaded in one page
+      required: false
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int64
+    - name: offset
+      in: query
+      description: The number of results previously loaded
+      required: false
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int64
+  responses:
+    200:
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../../schemas/polls/PollResult.yaml"
+    400:
+      description: Bad request
+    401:
+      description: Unauthorized
+    500:
+      description: Internal error
 post:
    tags:
    - Client

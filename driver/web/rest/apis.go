@@ -67,22 +67,87 @@ func NewInternalApisHandler(app *core.Application, config *model.Config) Interna
 // @Description Retrieves  all polls by a filter params
 // @Tags Client
 // @ID GetPolls
-// @Param data body model.PollsFilter false "body json for defined poll ids as request body"
 // @Success 200 {array} model.PollResult
 // @Security UserAuth
 // @Router /polls [get]
 func (h ApisHandler) GetPolls(user *model.User, w http.ResponseWriter, r *http.Request) {
 
 	var filter model.PollsFilter
-	bodyData, _ := ioutil.ReadAll(r.Body)
-	if bodyData != nil && len(bodyData) > 0 {
-		err := json.Unmarshal(bodyData, &filter)
+
+	pinRaw := r.URL.Query().Get("pin")
+	if len(pinRaw) > 0 {
+		intParsed, err := strconv.Atoi(pinRaw)
 		if err != nil {
-			log.Printf("Error on apis.GetPolls(): %s", err)
+			err = fmt.Errorf("error on apis.GetPolls: invalid pin - %v", err)
+			log.Println(err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		filter.Pin = &intParsed
 	}
+	myPollsRaw := r.URL.Query().Get("my_polls")
+	if len(myPollsRaw) > 0 {
+		boolParsed, err := strconv.ParseBool(myPollsRaw)
+		if err != nil {
+			err = fmt.Errorf("error on apis.GetPolls: invalid my_polls - %v", err)
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		filter.MyPolls = &boolParsed
+	}
+	respondedPollsRaw := r.URL.Query().Get("responded_polls")
+	if len(respondedPollsRaw) > 0 {
+		boolParsed, err := strconv.ParseBool(respondedPollsRaw)
+		if err != nil {
+			err = fmt.Errorf("error on apis.GetPolls: invalid responded_polls - %v", err)
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		filter.RespondedPolls = &boolParsed
+	}
+
+	pollIDsRaw := r.URL.Query().Get("poll_ids")
+	if len(pollIDsRaw) > 0 {
+		filter.PollIDs = strings.Split(pollIDsRaw, ",")
+	}
+	groupIDsRaw := r.URL.Query().Get("group_ids")
+	if len(groupIDsRaw) > 0 {
+		filter.GroupIDs = strings.Split(groupIDsRaw, ",")
+	}
+	statusesRaw := r.URL.Query().Get("statuses")
+	if len(statusesRaw) > 0 {
+		filter.Statuses = strings.Split(statusesRaw, ",")
+	}
+
+	limitRaw := r.URL.Query().Get("limit")
+	limit := int64(20)
+	if len(limitRaw) > 0 {
+		intParsed, err := strconv.Atoi(limitRaw)
+		if err != nil {
+			err = fmt.Errorf("error on apis.GetPolls: invalid limit - %v", err)
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		limit = int64(intParsed)
+	}
+	filter.Limit = &limit
+
+	offsetRaw := r.URL.Query().Get("offset")
+	offset := int64(0)
+	if len(offsetRaw) > 0 {
+		intParsed, err := strconv.Atoi(offsetRaw)
+		if err != nil {
+			err = fmt.Errorf("error on apis.GetPolls: invalid offset - %v", err)
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		offset = int64(intParsed)
+	}
+	filter.Offset = &offset
 
 	resData, err := h.app.Services.GetPolls(user, filter, true)
 	if err != nil {
