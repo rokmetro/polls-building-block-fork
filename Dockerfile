@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/golang:1.23-bullseye as builder
+FROM golang:1.24-alpine as builder
 
 ENV CGO_ENABLED=0
 

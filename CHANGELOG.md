@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Replace auth library and logging library with Building Block SDK [#79](https://github.com/rokwire/polls-building-block/issues/79)
 - Add CORS support
 ### Fixed
 - Fix PollResult voted bug

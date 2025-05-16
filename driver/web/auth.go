@@ -22,8 +22,8 @@ import (
 	"polls/core/model"
 	web "polls/driver/web/auth"
 
-	"github.com/rokwire/core-auth-library-go/v3/authservice"
-	"github.com/rokwire/logging-library-go/v2/logs"
+	"github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth"
+	"github.com/rokwire/rokwire-building-block-sdk-go/utils/logging/logs"
 )
 
 // Auth handler
@@ -46,7 +46,7 @@ func (auth *Auth) clientIDCheck(w http.ResponseWriter, r *http.Request) bool {
 }
 
 // NewAuth creates new auth handler
-func NewAuth(app *core.Application, config *model.Config, serviceRegManager *authservice.ServiceRegManager, logger *logs.Logger) *Auth {
+func NewAuth(app *core.Application, config *model.Config, serviceRegManager *auth.ServiceRegManager, logger *logs.Logger) *Auth {
 	coreAuth := web.NewCoreAuth(app, serviceRegManager)
 	internalAuth := newInternalAuth(config)
 	auth := Auth{coreAuth: coreAuth, internalAuth: internalAuth, logger: logger}

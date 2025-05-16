@@ -448,7 +448,7 @@ func (h ApisHandler) GetPollEvents(user *model.User, w http.ResponseWriter, r *h
 			if err != nil {
 				log.Printf("Error on apis.GetPollEvents(): %s", err)
 			}
-			log.Printf(string(jsonData))
+			log.Print(jsonData)
 			w.Write(jsonData)
 			flusher.Flush()
 		} else {

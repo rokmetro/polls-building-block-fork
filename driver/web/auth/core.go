@@ -20,9 +20,9 @@ import (
 	"polls/core"
 	"polls/core/model"
 
-	"github.com/rokwire/core-auth-library-go/v3/authorization"
-	"github.com/rokwire/core-auth-library-go/v3/authservice"
-	"github.com/rokwire/core-auth-library-go/v3/tokenauth"
+	"github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth"
+	"github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth/authorization"
+	"github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth/tokenauth"
 )
 
 // CoreAuth implementation
@@ -72,7 +72,7 @@ func (ca CoreAuth) CheckWithAuthorization(r *http.Request) (bool, bool, *model.U
 }
 
 // NewCoreAuth creates new CoreAuth
-func NewCoreAuth(app *core.Application, serviceRegManager *authservice.ServiceRegManager) *CoreAuth {
+func NewCoreAuth(app *core.Application, serviceRegManager *auth.ServiceRegManager) *CoreAuth {
 	permissionAuth := authorization.NewCasbinStringAuthorization("driver/web/authorization_policy.csv")
 	tokenAuth, err := tokenauth.NewTokenAuth(true, serviceRegManager, permissionAuth, nil)
 	if err != nil {

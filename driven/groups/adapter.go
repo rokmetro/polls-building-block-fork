@@ -9,18 +9,18 @@ import (
 	"net/http"
 	"polls/core/model"
 
-	"github.com/rokwire/core-auth-library-go/v3/authservice"
+	"github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth"
 )
 
 // Adapter groups adapter
 type Adapter struct {
 	internalAPIKey        string
 	baseURL               string
-	serviceAccountManager *authservice.ServiceAccountManager
+	serviceAccountManager *auth.ServiceAccountManager
 }
 
 // NewGroupsAdapter creates a new Groups BB adapter instance
-func NewGroupsAdapter(config *model.Config, serviceAccountManager *authservice.ServiceAccountManager) *Adapter {
+func NewGroupsAdapter(config *model.Config, serviceAccountManager *auth.ServiceAccountManager) *Adapter {
 	return &Adapter{internalAPIKey: config.InternalAPIKey, baseURL: config.GroupsHost, serviceAccountManager: serviceAccountManager} // pragma: allowlist secret
 }
 

@@ -1,6 +1,8 @@
 package model
 
-import "github.com/rokwire/core-auth-library-go/v3/tokenauth"
+import (
+	"github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth/tokenauth"
+)
 
 // User auth wrapper
 type User struct {

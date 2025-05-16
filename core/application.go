@@ -18,9 +18,9 @@ import (
 	cacheadapter "polls/driven/cache"
 	corebb "polls/driven/core"
 
-	"github.com/rokwire/core-auth-library-go/v3/tokenauth"
+	"github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth/tokenauth"
 
-	"github.com/rokwire/logging-library-go/v2/logs"
+	"github.com/rokwire/rokwire-building-block-sdk-go/utils/logging/logs"
 
 	"polls/driven/groups"
 	"polls/driven/notifications"

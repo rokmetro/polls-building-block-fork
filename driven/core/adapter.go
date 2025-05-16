@@ -23,22 +23,22 @@ import (
 	"net/http"
 	"polls/core/model"
 
-	"github.com/rokwire/core-auth-library-go/v3/authservice"
-	"github.com/rokwire/logging-library-go/v2/logs"
+	"github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth"
+	"github.com/rokwire/rokwire-building-block-sdk-go/utils/logging/logs"
 )
 
 // Adapter implements the Core interface
 type Adapter struct {
 	logger                logs.Logger
 	coreURL               string
-	serviceAccountManager *authservice.ServiceAccountManager
+	serviceAccountManager *auth.ServiceAccountManager
 
 	appID string
 	orgID string
 }
 
 // NewCoreAdapter creates a new adapter for Core API
-func NewCoreAdapter(coreURL string, orgID string, appID string, serviceAccountManager *authservice.ServiceAccountManager) *Adapter {
+func NewCoreAdapter(coreURL string, orgID string, appID string, serviceAccountManager *auth.ServiceAccountManager) *Adapter {
 	return &Adapter{coreURL: coreURL, appID: appID, orgID: orgID, serviceAccountManager: serviceAccountManager}
 }
 

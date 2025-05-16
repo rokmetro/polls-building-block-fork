@@ -13,7 +13,7 @@ The API documentation is available here: https://api.rokwire.illinois.edu/polls/
 
 MongoDB v4.2.2+
 
-Go v1.23+
+Go v1.24+
 
 ### Environment variables
 The following Environment variables are supported. The service will not start unless those marked as Required are supplied.

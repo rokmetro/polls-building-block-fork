@@ -16,14 +16,13 @@ package web
 
 import (
 	"fmt"
+	"github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth"
+	"github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth/webauth"
+	"github.com/rokwire/rokwire-building-block-sdk-go/utils/logging/logs"
 	"net/http"
 	"polls/core"
 	"polls/core/model"
 	"polls/driver/web/rest"
-
-	"github.com/rokwire/core-auth-library-go/v3/authservice"
-	"github.com/rokwire/core-auth-library-go/v3/webauth"
-	"github.com/rokwire/logging-library-go/v2/logs"
 
 	"github.com/casbin/casbin"
 	"github.com/gorilla/mux"
@@ -227,7 +226,7 @@ func (we Adapter) internalAPIKeyAuthWrapFunc(handler internalAPIKeyAuthFunc) htt
 }
 
 // NewWebAdapter creates new WebAdapter instance
-func NewWebAdapter(host string, port string, app *core.Application, config *model.Config, serviceRegManager *authservice.ServiceRegManager,
+func NewWebAdapter(host string, port string, app *core.Application, config *model.Config, serviceRegManager *auth.ServiceRegManager,
 	corsAllowedOrigins []string, corsAllowedHeaders []string, logger *logs.Logger) Adapter {
 	auth := NewAuth(app, config, serviceRegManager, logger)
 	authorization := casbin.NewEnforcer("driver/web/authorization_model.conf", "driver/web/authorization_policy.csv")

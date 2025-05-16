@@ -17,6 +17,7 @@ package main
 import (
 	"log"
 
+	"os"
 	"polls/core"
 	"polls/core/model"
 	cacheadapter "polls/driven/cache"
@@ -27,11 +28,11 @@ import (
 	driver "polls/driver/web"
 	"strings"
 
-	"github.com/rokwire/core-auth-library-go/v3/authservice"
-	"github.com/rokwire/core-auth-library-go/v3/envloader"
-	"github.com/rokwire/core-auth-library-go/v3/keys"
-	"github.com/rokwire/core-auth-library-go/v3/sigauth"
-	"github.com/rokwire/logging-library-go/v2/logs"
+	"github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth"
+	"github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth/keys"
+	"github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth/sigauth"
+	"github.com/rokwire/rokwire-building-block-sdk-go/utils/envloader"
+	"github.com/rokwire/rokwire-building-block-sdk-go/utils/logging/logs"
 )
 
 var (
@@ -77,28 +78,28 @@ func main() {
 	// Notifications BB Host
 	notificationsBBHost := envLoader.GetAndLogEnvVar(envPrefix+"NOTIFICATIONS_BB_HOST", true, false)
 
-	authService := authservice.AuthService{
+	authService := auth.Service{
 		ServiceID:   serviceID,
 		ServiceHost: serviceURL,
 		FirstParty:  true,
 		AuthBaseURL: coreBBHost,
 	}
 
-	serviceRegLoader, err := authservice.NewRemoteServiceRegLoader(&authService, []string{"auth"})
+	serviceRegLoader, err := auth.NewRemoteServiceRegLoader(&authService, []string{"auth"})
 	if err != nil {
 		log.Fatalf("Error initializing remote service registration loader: %v", err)
 	}
 
-	serviceRegManager, err := authservice.NewServiceRegManager(&authService, serviceRegLoader, !strings.HasPrefix(serviceURL, "http://localhost"))
+	serviceRegManager, err := auth.NewServiceRegManager(&authService, serviceRegLoader, !strings.HasPrefix(serviceURL, "http://localhost"))
 	if err != nil {
 		log.Fatalf("Error initializing service registration manager: %v", err)
 	}
 
 	//core adapter
-	var serviceAccountManager *authservice.ServiceAccountManager
+	var serviceAccountManager *auth.ServiceAccountManager
 
-	serviceAccountID := envLoader.GetAndLogEnvVar(envPrefix+"SERVICE_ACCOUNT_ID", false, false)
-	privKeyRaw := envLoader.GetAndLogEnvVar(envPrefix+"PRIV_KEY", true, true)
+	serviceAccountID := getEnvKey("POLLS_SERVICE_ACCOUNT_ID", false)
+	privKeyRaw := getEnvKey("POLLS_PRIV_KEY", true)
 	privKeyRaw = strings.ReplaceAll(privKeyRaw, "\\n", "\n")
 	privKey, err := keys.NewPrivKey(keys.PS256, privKeyRaw)
 	if err != nil {
@@ -111,12 +112,12 @@ func main() {
 			logger.Fatalf("Error initializing signature auth: %v", err)
 		}
 
-		serviceAccountLoader, err := authservice.NewRemoteServiceAccountLoader(&authService, serviceAccountID, signatureAuth)
+		serviceAccountLoader, err := auth.NewRemoteServiceAccountLoader(&authService, serviceAccountID, signatureAuth)
 		if err != nil {
 			logger.Fatalf("Error initializing remote service account loader: %v", err)
 		}
 
-		serviceAccountManager, err = authservice.NewServiceAccountManager(&authService, serviceAccountLoader)
+		serviceAccountManager, err = auth.NewServiceAccountManager(&authService, serviceAccountLoader)
 		if err != nil {
 			logger.Fatalf("Error initializing service account manager: %v", err)
 		}
@@ -173,4 +174,29 @@ func main() {
 	webAdapter := driver.NewWebAdapter(host, port, application, config, serviceRegManager, corsAllowedOrigins, corsAllowedHeaders, logger)
 
 	webAdapter.Start()
+}
+
+func getEnvKeyAsList(key string, required bool) []string {
+	stringValue := getEnvKey(key, required)
+
+	// it is comma separated format
+	stringListValue := strings.Split(stringValue, ",")
+	if len(stringListValue) == 0 && required {
+		log.Fatalf("missing or empty env var: %s", key)
+	}
+
+	return stringListValue
+}
+
+func getEnvKey(key string, required bool) string {
+	// get from the environment
+	value, exist := os.LookupEnv(key)
+	if !exist {
+		if required {
+			log.Fatal("No provided environment variable for " + key)
+		} else {
+			log.Print("No provided environment variable for " + key)
+		}
+	}
+	return value
 }
