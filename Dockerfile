@@ -23,7 +23,6 @@ COPY --from=builder /polls-app/driver/web/authorization_policy.csv /driver/web/a
 
 COPY --from=builder /polls-app/vendor/github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth/authorization/authorization_model_scope.conf /polls-app/vendor/github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth/authorization/authorization_model_scope.conf
 COPY --from=builder /polls-app/vendor/github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth/authorization/authorization_model_string.conf /polls-app/vendor/github.com/rokwire/rokwire-building-block-sdk-go/services/core/auth/authorization/authorization_model_string.conf
-COPY --from=builder /polls-app/vendor/github.com/rokwire/rokwire-building-block-sdk-go/web/def.yaml /polls-app/vendor/github.com/rokwire/rokwire-building-block-sdk-go/web/def.yaml
 
 #we need timezone database
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo 
