@@ -183,14 +183,15 @@ func (app *Application) endPoll(user *model.User, pollID string) error {
 }
 
 func (app *Application) notifyNotificationsBBForPoll(user *model.User, poll *model.Poll, topic string, operation string, message string) {
-	subject := "Illinois"
+	subject := "Poll"
 	if poll.GroupID != nil {
 
 		group, _ := app.groups.GetGroupDetails(user.Token, *poll.GroupID)
 		if group != nil {
-			subject = fmt.Sprintf("Group - %s", group.Title)
+			subject = fmt.Sprintf("Group Poll - %s", group.Title)
 		}
 
+		topic = fmt.Sprintf("group.%s", topic)
 		app.groups.SendGroupNotification(*poll.GroupID, model.GroupNotification{
 			Members: poll.ToMembersList.ToNotificationRecipients(),
 			Sender: &model.Sender{
