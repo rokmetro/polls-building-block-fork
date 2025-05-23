@@ -2,6 +2,8 @@ FROM public.ecr.aws/docker/library/golang:1.24-alpine as builder
 
 ENV CGO_ENABLED=0
 
+RUN apk add --no-cache --update make git
+
 RUN mkdir /polls-app
 WORKDIR /polls-app
 # Copy the source from the current directory to the Working Directory inside the container
